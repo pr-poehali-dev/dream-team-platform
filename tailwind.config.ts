@@ -7,6 +7,7 @@ export default {
 		"./components/**/*.{ts,tsx}",
 		"./app/**/*.{ts,tsx}",
 		"./src/**/*.{ts,tsx}",
+		"./1745317723912093022.html"
 	],
 	prefix: "",
 	theme: {
@@ -61,6 +62,11 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				dreamteam: {
+					purple: '#9b87f5',
+					'dark-purple': '#8b5cf6',
+					dark: '#1A1F2C'
 				}
 			},
 			borderRadius: {
