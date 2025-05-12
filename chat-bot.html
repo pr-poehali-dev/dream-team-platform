@@ -1,0 +1,253 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dream Team Чат-бот</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f5f7fa;
+        }
+        .chat-container {
+            max-width: 400px;
+            margin: 20px auto;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        .chat-header {
+            background-color: rgba(155, 135, 245, 0.1);
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .chat-messages {
+            height: 350px;
+            overflow-y: auto;
+            padding: 16px;
+        }
+        .bot-message {
+            background-color: #f3f4f6;
+            color: #1f2937;
+            border-radius: 12px;
+            padding: 10px 14px;
+            max-width: 80%;
+            margin-bottom: 16px;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        .user-message {
+            background-color: #9b87f5;
+            color: white;
+            border-radius: 12px;
+            padding: 10px 14px;
+            max-width: 80%;
+            margin-left: auto;
+            margin-bottom: 16px;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        .bot-typing {
+            background-color: #f3f4f6;
+            color: #1f2937;
+            border-radius: 12px;
+            padding: 10px 14px;
+            width: 80px;
+            margin-bottom: 16px;
+            display: none;
+        }
+        .dot-typing {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: #9b87f5;
+            border-radius: 50%;
+            margin-right: 4px;
+            animation: dot-typing 1.5s infinite linear;
+        }
+        .dot-typing:nth-child(2) {
+            animation-delay: 0.5s;
+        }
+        .dot-typing:nth-child(3) {
+            animation-delay: 1s;
+        }
+        .chat-input {
+            display: flex;
+            padding: 12px;
+            border-top: 1px solid #e5e7eb;
+            background-color: white;
+        }
+        .input-field {
+            flex: 1;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 10px 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .input-field:focus {
+            border-color: #9b87f5;
+        }
+        .send-btn {
+            background-color: #9b87f5;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            width: 40px;
+            height: 40px;
+            margin-left: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .send-btn:hover {
+            background-color: #8b5cf6;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes dot-typing {
+            0% {
+                transform: scale(0.7);
+                opacity: 0.5;
+            }
+            50% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(0.7);
+                opacity: 0.5;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container bg-white">
+        <div class="chat-header p-4 flex items-center">
+            <i class="fas fa-robot text-lg text-purple-500 mr-2"></i>
+            <h2 class="text-lg font-semibold text-gray-800">Dream Team Бот</h2>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <div class="bot-message flex items-start">
+                <i class="fas fa-robot text-sm text-purple-500 mt-1 mr-2"></i>
+                <div>
+                    Привет! Я бот Dream Team. Могу помочь подобрать вакансии под твоё расписание и создать портфолио. Расскажи, когда ты свободен для работы?
+                </div>
+            </div>
+            
+            <div class="bot-typing" id="botTyping">
+                <i class="fas fa-robot text-sm text-purple-500 mr-2"></i>
+                <div class="dot-typing"></div>
+                <div class="dot-typing"></div>
+                <div class="dot-typing"></div>
+            </div>
+        </div>
+        
+        <div class="chat-input">
+            <input type="text" id="messageInput" class="input-field" placeholder="Напишите сообщение...">
+            <button id="sendButton" class="send-btn flex items-center justify-center">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const chatMessages = document.getElementById('chatMessages');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const botTyping = document.getElementById('botTyping');
+
+        // Предопределенные ответы бота
+        const botResponses = {
+            'график': 'Отлично! Я учту твоё расписание при подборе вакансий. Какие у тебя навыки и в какой сфере ты хотел бы работать?',
+            'расписание': 'Отлично! Я учту твоё расписание при подборе вакансий. Какие у тебя навыки и в какой сфере ты хотел бы работать?',
+            'свободен': 'Отлично! Я учту твоё расписание при подборе вакансий. Какие у тебя навыки и в какой сфере ты хотел бы работать?',
+            'навык': 'Я подобрал несколько вакансий, которые подходят под твои навыки и расписание: 1) Junior Frontend Developer (удалённо, 15-20 часов в неделю), 2) Контент-менеджер (гибкий график), 3) Графический дизайнер (проектная работа). Какая вакансия тебя больше заинтересовала?',
+            'умею': 'Я подобрал несколько вакансий, которые подходят под твои навыки и расписание: 1) Junior Frontend Developer (удалённо, 15-20 часов в неделю), 2) Контент-менеджер (гибкий график), 3) Графический дизайнер (проектная работа). Какая вакансия тебя больше заинтересовала?',
+            'могу': 'Я подобрал несколько вакансий, которые подходят под твои навыки и расписание: 1) Junior Frontend Developer (удалённо, 15-20 часов в неделю), 2) Контент-менеджер (гибкий график), 3) Графический дизайнер (проектная работа). Какая вакансия тебя больше заинтересовала?',
+            'вакансия': 'Я могу автоматически сформировать для тебя портфолио под выбранную вакансию. Хочешь увидеть пример?',
+            'работа': 'Я могу автоматически сформировать для тебя портфолио под выбранную вакансию. Хочешь увидеть пример?',
+            'консультант': 'У нас есть карьерные консультанты, которые помогут тебе определиться с выбором ниши для подработки. Хочешь записаться на бесплатную консультацию?',
+            'помощь': 'У нас есть карьерные консультанты, которые помогут тебе определиться с выбором ниши для подработки. Хочешь записаться на бесплатную консультацию?',
+            'совет': 'У нас есть карьерные консультанты, которые помогут тебе определиться с выбором ниши для подработки. Хочешь записаться на бесплатную консультацию?',
+            'default': 'Спасибо за информацию! Чтобы подобрать для тебя подходящие вакансии, расскажи пожалуйста о своем графике: в какие дни и время ты можешь работать?'
+        };
+
+        function addMessage(text, isBotMessage) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = isBotMessage ? 'bot-message flex items-start' : 'user-message flex items-end';
+            
+            if (isBotMessage) {
+                messageDiv.innerHTML = `
+                    <i class="fas fa-robot text-sm text-purple-500 mt-1 mr-2"></i>
+                    <div>${text}</div>
+                `;
+            } else {
+                messageDiv.innerHTML = `
+                    <div>${text}</div>
+                    <i class="fas fa-user text-sm text-white mt-1 ml-2"></i>
+                `;
+            }
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showBotTyping() {
+            botTyping.style.display = 'flex';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function hideBotTyping() {
+            botTyping.style.display = 'none';
+        }
+
+        function getBotResponse(userMessage) {
+            const messageLower = userMessage.toLowerCase();
+            
+            for (const keyword in botResponses) {
+                if (messageLower.includes(keyword)) {
+                    return botResponses[keyword];
+                }
+            }
+            
+            return botResponses.default;
+        }
+
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+            
+            // Добавляем сообщение пользователя
+            addMessage(message, false);
+            messageInput.value = '';
+            
+            // Показываем, что бот печатает
+            showBotTyping();
+            
+            // Имитируем задержку перед ответом бота
+            setTimeout(() => {
+                hideBotTyping();
+                const botResponse = getBotResponse(message);
+                addMessage(botResponse, true);
+            }, 1500);
+        }
+
+        sendButton.addEventListener('click', sendMessage);
+        
+        messageInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
